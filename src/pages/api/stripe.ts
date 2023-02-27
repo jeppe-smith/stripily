@@ -41,8 +41,8 @@ export default async function stripeWebhook(
         sig,
         env.STRIPE_WEBHOOK_SECRET
       );
-    } catch (error) {
-      res.status(400).send(`Webhook Error: ${error}`);
+    } catch (error: any) {
+      res.status(400).send(`Webhook Error: ${(error as Error).toString()}`);
       return;
     }
 
@@ -65,7 +65,7 @@ export default async function stripeWebhook(
   } catch (error: any) {
     console.error(error);
     res.status(500).json({
-      error: error.toString(),
+      error: (error as Error).toString(),
     });
   }
 }

@@ -1,7 +1,7 @@
 import got, { Got } from "got";
 
 type Input<T> = Omit<T, "id">;
-type Response<K extends string, V extends unknown> = {
+type Response<K extends string, V> = {
   [key in K]: V;
 };
 
