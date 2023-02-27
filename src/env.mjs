@@ -9,6 +9,9 @@ const server = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
   ARGON2_SECRET: z.string().min(1),
   NEXTAUTH_SECRET: z.string().min(1),
+  STRIPE_API_KEY: z.string().min(1),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1),
+  BILLY_API_KEY: z.string().min(1),
   NEXTAUTH_URL: z.preprocess(
     // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
     // Since NextAuth.js automatically uses the VERCEL_URL if present.
@@ -38,6 +41,9 @@ const processEnv = {
   ARGON2_SECRET: process.env.ARGON2_SECRET,
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+  STRIPE_API_KEY: process.env.STRIPE_API_KEY,
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+  BILLY_API_KEY: process.env.BILLY_API_KEY,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 

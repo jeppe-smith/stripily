@@ -19,10 +19,13 @@
     "@trpc/react-query": "^10.9.0",
     "@trpc/server": "^10.9.0",
     "argon2": "^0.30.3",
+    "got": "^12.5.3",
+    "micro": "^10.0.1",
     "next": "13.2.1",
     "next-auth": "^4.19.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "stripe": "^11.12.0",
     "superjson": "1.9.1",
     "zod": "^3.20.2"
   },
