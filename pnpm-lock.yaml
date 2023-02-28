@@ -23,6 +23,7 @@ specifiers:
   micro: ^10.0.1
   next: 13.2.1
   next-auth: ^4.19.0
+  next-axiom: ^0.17.0
   postcss: ^8.4.14
   prettier: ^2.8.1
   prettier-plugin-tailwindcss: ^0.2.1
@@ -48,6 +49,7 @@ dependencies:
   micro: 10.0.1
   next: 13.2.1_biqbaboplfbrettd7655fr4n2y
   next-auth: 4.19.2_qgtcjgzkkjtbiyvnx7d32fl5vu
+  next-axiom: 0.17.0_next@13.2.1
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   stripe: 11.12.0
@@ -2310,6 +2312,16 @@ packages:
       uuid: 8.3.2
     dev: false
 
+  /next-axiom/0.17.0_next@13.2.1:
+    resolution: {integrity: sha512-qFdnH50SvRjJUAmNjGIYLcRc4tO/U4R1h9WUuniiwaucXAH5KhL06m7TT3WWD2U1HbulwSfC0R+NlPASOx1XlQ==}
+    engines: {node: '>=15'}
+    peerDependencies:
+      next: ^12.1.4 || ^13
+    dependencies:
+      next: 13.2.1_biqbaboplfbrettd7655fr4n2y
+      whatwg-fetch: 3.6.2
+    dev: false
+
   /next/13.2.1_biqbaboplfbrettd7655fr4n2y:
     resolution: {integrity: sha512-qhgJlDtG0xidNViJUPeQHLGJJoT4zDj/El7fP3D3OzpxJDUfxsm16cK4WTMyvSX1ciIfAq05u+0HqFAa+VJ+Hg==}
     engines: {node: '>=14.6.0'}
@@ -3297,6 +3309,10 @@ packages:
 
   /webidl-conversions/3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
+    dev: false
+
+  /whatwg-fetch/3.6.2:
+    resolution: {integrity: sha512-bJlen0FcuU/0EMLrdbJ7zOnW6ITZLrZMIarMUVmdKtsGvZna8vxKYaexICWPfZ8qwf9fzNq+UEIZrnSaApt6RA==}
     dev: false
 
   /whatwg-url/5.0.0:

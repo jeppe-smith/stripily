@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { NextApiRequest, NextApiResponse } from "next";
+import { log } from "next-axiom";
 import { env } from "~/env.mjs";
 import { buffer } from "micro";
 import { buildDaybookTransactionFromCharge } from "~/server/utils";
@@ -53,7 +54,9 @@ export default async function stripeWebhook(
             billy.createDaybookTransaction(daybookTransaction)
           )
           .then(() => console.log("Daybook transaction created"))
-          .catch(console.error);
+          .catch((error) =>
+            log.error("charge.succeeded handler failed", error)
+          );
 
         break;
       default:
