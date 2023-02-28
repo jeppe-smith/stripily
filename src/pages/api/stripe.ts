@@ -27,14 +27,14 @@ export default async function stripeWebhook(
     }
 
     if (typeof sig !== "string") {
-      return res.status(400).send("Missing Stripe signature");
+      log.debug("Missing Stripe signature");
+      return res.status(400).json({ error: "Missing Stripe signature" });
     }
 
     let event: Stripe.Event;
     const buf = await buffer(req);
 
     const stripe = new Stripe(env.STRIPE_API_KEY, { apiVersion: "2022-11-15" });
-    const billy = new Billy(env.BILLY_API_KEY);
 
     try {
       event = stripe.webhooks.constructEvent(
@@ -43,30 +43,34 @@ export default async function stripeWebhook(
         env.STRIPE_WEBHOOK_SECRET
       );
     } catch (error: any) {
-      res.status(400).send(`Webhook Error: ${(error as Error).toString()}`);
+      log.error((error as Error).toString());
+      res.status(400).json({ error: error as Error });
       return;
     }
 
     switch (event.type) {
       case "charge.succeeded":
-        buildDaybookTransactionFromCharge(event.data.object as Stripe.Charge)
-          .then((daybookTransaction) =>
-            billy.createDaybookTransaction(daybookTransaction)
-          )
-          .then(() => log.debug("Daybook transaction created"))
-          .catch((error) => log.error((error as Error).toString()));
-
+        await createDaybookTransaction(event.data.object as Stripe.Charge);
         break;
       default:
-        console.log("Unhandled event type", event.type);
+        log.debug("Unhandled event type", { type: event.type });
         break;
     }
 
     res.status(200).json({ received: true });
   } catch (error: any) {
-    console.error(error);
+    log.error((error as Error).toString());
     res.status(500).json({
-      error: (error as Error).toString(),
+      error: error as Error,
     });
   }
+}
+
+async function createDaybookTransaction(charge: Stripe.Charge) {
+  const billy = new Billy(env.BILLY_API_KEY);
+  const daybookTransaction = await buildDaybookTransactionFromCharge(charge);
+
+  await billy.createDaybookTransaction(daybookTransaction);
+
+  log.info("Daybook transaction created");
 }
