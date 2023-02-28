@@ -3,6 +3,18 @@ import got, { Got } from "got";
 type Input<T> = Omit<T, "id">;
 type Response<K extends string, V> = {
   [key in K]: V;
+} & {
+  meta: {
+    statusCode: number;
+    success: boolean;
+    paging?: {
+      page: number;
+      pageSize: number;
+      pageCount: number;
+      total: number;
+    };
+    time: number;
+  };
 };
 
 export type DaybookTransaction = {
@@ -282,5 +294,30 @@ export class Billy {
       .json<Response<"daybooks", Daybook[]>>();
 
     return response.daybooks[0]!;
+  }
+
+  async getDaybookTransactionForPayout(payoutId: string) {
+    const response = await this.client
+      .get("daybookTransactions", {
+        searchParams: {
+          voucherNo: payoutId,
+        },
+      })
+      .json<Response<"daybookTransactions", DaybookTransaction[]>>();
+
+    return response.daybookTransactions[0];
+  }
+
+  async voidDaybookTransaction(id: string) {
+    const response = await this.client
+      .put(`daybookTransactions/${id}`, {
+        json: {
+          id: id,
+          state: "voided",
+        },
+      })
+      .json<Response<"daybookTransactions", DaybookTransaction[]>>();
+
+    return response.meta.success;
   }
 }

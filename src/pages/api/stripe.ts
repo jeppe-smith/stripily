@@ -3,7 +3,10 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { log } from "next-axiom";
 import { env } from "~/env.mjs";
 import { buffer } from "micro";
-import { buildDaybookTransactionFromCharge } from "~/server/utils";
+import {
+  buildDaybookTransactionFromCharge,
+  buildDaybookTransactionFromPayout,
+} from "~/server/utils";
 import { Billy } from "~/server/billy";
 
 export const config = {
@@ -50,7 +53,19 @@ export default async function stripeWebhook(
 
     switch (event.type) {
       case "charge.succeeded":
-        await createDaybookTransaction(event.data.object as Stripe.Charge);
+        await createDaybookTransactionFromCharge(
+          event.data.object as Stripe.Charge
+        );
+        break;
+      case "payout.paid":
+        await createDaybookTransactionFromPayout(
+          event.data.object as Stripe.Payout
+        );
+        break;
+      case "payout.failed":
+        await voidDaybookTransactionForPayout(
+          event.data.object as Stripe.Payout
+        );
         break;
       default:
         log.debug("Unhandled event type", { type: event.type });
@@ -66,11 +81,34 @@ export default async function stripeWebhook(
   }
 }
 
-async function createDaybookTransaction(charge: Stripe.Charge) {
+async function createDaybookTransactionFromCharge(charge: Stripe.Charge) {
   const billy = new Billy(env.BILLY_API_KEY);
   const daybookTransaction = await buildDaybookTransactionFromCharge(charge);
 
   await billy.createDaybookTransaction(daybookTransaction);
 
   log.info("Daybook transaction created");
+}
+
+async function createDaybookTransactionFromPayout(payout: Stripe.Payout) {
+  const billy = new Billy(env.BILLY_API_KEY);
+  const daybookTransaction = await buildDaybookTransactionFromPayout(payout);
+
+  await billy.createDaybookTransaction(daybookTransaction);
+
+  log.info("Daybook transaction created");
+}
+
+async function voidDaybookTransactionForPayout(payout: Stripe.Payout) {
+  const billy = new Billy(env.BILLY_API_KEY);
+  const daybookTransaction = await billy.getDaybookTransactionForPayout(
+    payout.id
+  );
+
+  if (daybookTransaction) {
+    await billy.voidDaybookTransaction(daybookTransaction.id);
+    log.info("Daybook transaction voided");
+  } else {
+    log.info("Daybook transaction not found: " + payout.id);
+  }
 }

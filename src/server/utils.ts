@@ -2,21 +2,16 @@ import Stripe from "stripe";
 import { env } from "~/env.mjs";
 import { Billy, DaybookTransactionInput } from "~/server/billy";
 
-export async function buildDaybookTransactionFromCharge(
-  charge: Stripe.Charge
-): Promise<DaybookTransactionInput> {
+export async function buildDaybookTransactionFromCharge(charge: Stripe.Charge) {
   const stripe = new Stripe(env.STRIPE_API_KEY, { apiVersion: "2022-11-15" });
   const billy = new Billy(env.BILLY_API_KEY);
   const country = charge.billing_details.address?.country;
   const balanceTransaction = await stripe.balanceTransactions.retrieve(
     charge.balance_transaction as string
   );
-  const exchangeRate = balanceTransaction.exchange_rate!;
-  // const chargeAmount = Math.round(charge.amount * exchangeRate) / 100;
   const feeAmount = balanceTransaction.fee / 100;
   const balanceTransactionAmount = balanceTransaction.amount / 100;
-
-  return {
+  const daybookTransaction: DaybookTransactionInput = {
     daybookId: (await billy.getDaybook()).id,
     entryDate: new Date(charge.created * 1000).toISOString().split("T")[0]!,
     state: "draft",
@@ -47,4 +42,37 @@ export async function buildDaybookTransactionFromCharge(
       },
     ],
   };
+
+  return daybookTransaction;
+}
+
+export async function buildDaybookTransactionFromPayout(payout: Stripe.Payout) {
+  const billy = new Billy(env.BILLY_API_KEY);
+  const daybookTransaction: DaybookTransactionInput = {
+    daybookId: (await billy.getDaybook()).id,
+    entryDate: new Date(payout.arrival_date * 1000)
+      .toISOString()
+      .split("T")[0]!,
+    state: "draft",
+    voucherNo: payout.id,
+    lines: [
+      {
+        text: payout.description || "Payout",
+        amount: payout.amount / 100,
+        side: "credit",
+        currencyId: "DKK",
+        accountId: (await billy.getDefaultStripeAccount()).id,
+        priority: 0,
+      },
+      {
+        amount: payout.amount / 100,
+        side: "debit",
+        currencyId: "DKK",
+        accountId: (await billy.getDefaultBankAccount()).id,
+        priority: 1,
+      },
+    ],
+  };
+
+  return daybookTransaction;
 }
