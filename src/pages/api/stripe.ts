@@ -53,7 +53,7 @@ export default async function stripeWebhook(
           .then((daybookTransaction) =>
             billy.createDaybookTransaction(daybookTransaction)
           )
-          .then(() => console.log("Daybook transaction created"))
+          .then(() => log.debug("Daybook transaction created"))
           .catch((error) =>
             log.error("charge.succeeded handler failed", error)
           );
