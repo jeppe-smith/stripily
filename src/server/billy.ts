@@ -145,7 +145,7 @@ export class Billy {
       .post("daybookTransactions", {
         json: { daybookTransaction },
       })
-      .json<Response<"daybookTransaction", DaybookTransaction>>();
+      .json<Response<"daybookTransactions", DaybookTransaction[]>>();
 
     return response;
   }

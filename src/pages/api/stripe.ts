@@ -6,8 +6,12 @@ import { buffer } from "micro";
 import {
   buildDaybookTransactionFromCharge,
   buildDaybookTransactionFromPayout,
+  createDaybookTransactionFromCharge,
+  createDaybookTransactionFromPayout,
+  voidDaybookTransactionForPayout,
 } from "~/server/utils";
 import { Billy } from "~/server/billy";
+import { prisma } from "~/server/db";
 
 export const config = {
   api: {
@@ -78,37 +82,5 @@ export default async function stripeWebhook(
     res.status(500).json({
       error: error as Error,
     });
-  }
-}
-
-async function createDaybookTransactionFromCharge(charge: Stripe.Charge) {
-  const billy = new Billy(env.BILLY_API_KEY);
-  const daybookTransaction = await buildDaybookTransactionFromCharge(charge);
-
-  await billy.createDaybookTransaction(daybookTransaction);
-
-  log.info("Daybook transaction created");
-}
-
-async function createDaybookTransactionFromPayout(payout: Stripe.Payout) {
-  const billy = new Billy(env.BILLY_API_KEY);
-  const daybookTransaction = await buildDaybookTransactionFromPayout(payout);
-
-  await billy.createDaybookTransaction(daybookTransaction);
-
-  log.info("Daybook transaction created");
-}
-
-async function voidDaybookTransactionForPayout(payout: Stripe.Payout) {
-  const billy = new Billy(env.BILLY_API_KEY);
-  const daybookTransaction = await billy.getDaybookTransactionForPayout(
-    payout.id
-  );
-
-  if (daybookTransaction) {
-    await billy.voidDaybookTransaction(daybookTransaction.id);
-    log.info("Daybook transaction voided");
-  } else {
-    log.info("Daybook transaction not found: " + payout.id);
   }
 }
