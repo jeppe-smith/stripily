@@ -3,12 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "next build && prisma db push",
     "dev": "next dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "next start",
-    "postbuild": "prisma db push"
+    "start": "next start"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.12",
