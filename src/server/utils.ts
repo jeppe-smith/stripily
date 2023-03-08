@@ -1,8 +1,19 @@
 import { log } from "next-axiom";
 import Stripe from "stripe";
 import { env } from "~/env.mjs";
-import { Billy, DaybookTransactionInput } from "~/server/billy";
+import {
+  Billy,
+  DaybookTransactionInput,
+  DaybookTransactionLine,
+  DaybookTransactionLineInput,
+} from "~/utils/billy";
 import { prisma } from "~/server/db";
+
+// type TaxAmount = {
+//   amount: number;
+//   inclusive: boolean;
+//   tax_rate:
+// }
 
 export async function buildDaybookTransactionFromCharge(charge: Stripe.Charge) {
   const stripe = new Stripe(env.STRIPE_API_KEY, { apiVersion: "2022-11-15" });
@@ -11,8 +22,16 @@ export async function buildDaybookTransactionFromCharge(charge: Stripe.Charge) {
   const balanceTransaction = await stripe.balanceTransactions.retrieve(
     charge.balance_transaction as string
   );
-  const feeAmount = balanceTransaction.fee / 100;
-  const balanceTransactionAmount = balanceTransaction.amount / 100;
+  const invoice = await stripe.invoices.retrieve(charge.invoice as string, {
+    expand: ["total_tax_amounts.tax_rate"],
+  });
+  const exchangeRate = balanceTransaction.exchange_rate ?? 1;
+  const taxLines = await getTaxLines(invoice, exchangeRate);
+  const feeAmount = balanceTransaction.fee;
+  const taxAmount = Math.round((invoice.tax ?? 0) * exchangeRate);
+  const purchaseAmount = Math.round(
+    (invoice.total_excluding_tax ?? 0) * exchangeRate
+  );
   const daybookTransaction: DaybookTransactionInput = {
     daybookId: (await billy.getDaybook()).id,
     entryDate: new Date(charge.created * 1000).toISOString().split("T")[0]!,
@@ -20,24 +39,24 @@ export async function buildDaybookTransactionFromCharge(charge: Stripe.Charge) {
     voucherNo: charge.invoice as string,
     lines: [
       {
+        amount: purchaseAmount / 100,
         text: charge.description!,
-        amount: balanceTransactionAmount,
-        side: "debit",
+        side: "credit",
         currencyId: "DKK",
         accountId: (await billy.getSalesAccount(country)).id,
-        taxRateId: (await billy.getTaxRate(country)).id,
         priority: 0,
       },
+      ...taxLines,
       {
-        amount: feeAmount,
-        side: "credit",
+        amount: feeAmount / 100,
+        side: "debit",
         currencyId: "DKK",
         accountId: (await billy.getDefaultFeesAccount()).id,
         priority: 1,
       },
       {
-        amount: balanceTransactionAmount - feeAmount,
-        side: "credit",
+        amount: (purchaseAmount - feeAmount + taxAmount) / 100,
+        side: "debit",
         currencyId: "DKK",
         accountId: (await billy.getDefaultStripeAccount()).id,
         priority: 2,
@@ -61,14 +80,14 @@ export async function buildDaybookTransactionFromPayout(payout: Stripe.Payout) {
       {
         text: payout.description || "Payout",
         amount: payout.amount / 100,
-        side: "debit",
+        side: "credit",
         currencyId: "DKK",
         accountId: (await billy.getDefaultStripeAccount()).id,
         priority: 0,
       },
       {
         amount: payout.amount / 100,
-        side: "credit",
+        side: "debit",
         currencyId: "DKK",
         accountId: (await billy.getDefaultBankAccount()).id,
         priority: 1,
@@ -82,20 +101,27 @@ export async function buildDaybookTransactionFromPayout(payout: Stripe.Payout) {
 export async function createDaybookTransactionFromCharge(
   charge: Stripe.Charge
 ) {
+  const stripe = new Stripe(env.STRIPE_API_KEY, { apiVersion: "2022-11-15" });
   const billy = new Billy(env.BILLY_API_KEY);
   const input = await buildDaybookTransactionFromCharge(charge);
   const { daybookTransactions } = await billy.createDaybookTransaction(input);
   const daybookTransaction = daybookTransactions[0]!;
   const { state } = daybookTransaction;
 
-  await prisma.daybookTransaction.create({
-    data: {
+  await stripe.charges.update(charge.id, {
+    metadata: {
       billyId: daybookTransaction.id,
-      stripeId: charge.id,
-      object: "CHARGE",
-      state: state === "voided" ? "VOIDED" : "APPROVED",
     },
   });
+
+  // await prisma.daybookTransaction.create({
+  //   data: {
+  //     billyId: daybookTransaction.id,
+  //     stripeId: charge.id,
+  //     object: "CHARGE",
+  //     state: state === "voided" ? "VOIDED" : "APPROVED",
+  //   },
+  // });
 
   log.info("Daybook transaction created");
 }
@@ -123,26 +149,23 @@ export async function createDaybookTransactionFromPayout(
   log.info("Daybook transaction created");
 }
 
-export async function voidDaybookTransactionForPayout(payout: Stripe.Payout) {
+async function getTaxLines(invoice: Stripe.Invoice, exchangeRate: number) {
   const billy = new Billy(env.BILLY_API_KEY);
-  const daybookTransaction = await billy.getDaybookTransactionForPayout(
-    payout.id
-  );
+  const taxLines: DaybookTransactionLineInput[] = [];
 
-  if (daybookTransaction) {
-    await billy.voidDaybookTransaction(daybookTransaction.id);
-    await prisma.daybookTransaction.update({
-      where: {
-        billyId: daybookTransaction.id,
-        stripeId: payout.id,
-      },
-      data: {
-        state: "VOIDED",
-      },
-    });
+  for (const taxAmount of invoice.total_tax_amounts) {
+    const taxRate = taxAmount.tax_rate as Stripe.TaxRate;
 
-    log.info("Daybook transaction voided");
-  } else {
-    log.info("Daybook transaction not found: " + payout.id);
+    if (taxRate.country === "DK" && taxRate.percentage === 25) {
+      taxLines.push({
+        amount: Math.round(taxAmount.amount * exchangeRate) / 100,
+        side: "credit",
+        currencyId: "DKK",
+        accountId: (await billy.getDkVatAccount()).id,
+        priority: 0,
+      });
+    }
   }
+
+  return taxLines;
 }

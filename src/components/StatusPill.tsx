@@ -15,7 +15,7 @@ export function StatusPill(props: StatusPillProps) {
         props.status === "warning" &&
           "bg-yellow-100 text-yellow-800 ring-yellow-300",
         props.status === "error" && "bg-red-100 text-red-800 ring-red-300",
-        props.status === "info" && "ring-grey-300 bg-gray-200 text-gray-800"
+        props.status === "info" && "bg-gray-100 text-gray-800 ring-gray-300"
       )}
     >
       {props.text}

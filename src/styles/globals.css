@@ -2,6 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-  @apply text-gray-700;
+body {
+  @apply text-sm leading-5 text-gray-700;
 }

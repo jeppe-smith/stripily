@@ -14,11 +14,6 @@ export type ChargeRowProps = {
 };
 
 export function ChargeRow(props: ChargeRowProps) {
-  const { data: status, refetch } =
-    api.app.getDaybookTransactionStatus.useQuery({
-      stripeId: props.charge.id,
-    });
-
   return (
     <TableRow selected={props.selected}>
       <TableCell>
@@ -36,20 +31,8 @@ export function ChargeRow(props: ChargeRowProps) {
       <TableCell>{props.charge.currency.toUpperCase()}</TableCell>
       <TableCell>
         <StatusPill
-          status={
-            status === "APPROVED"
-              ? "success"
-              : status === "VOIDED"
-              ? "info"
-              : "warning"
-          }
-          text={
-            status === "APPROVED"
-              ? "synced"
-              : status === "VOIDED"
-              ? "voided"
-              : "not synced"
-          }
+          status={props.charge.metadata.billyId ? "success" : "info"}
+          text={props.charge.metadata.billyId ? "synced" : "not synced"}
         />
       </TableCell>
     </TableRow>

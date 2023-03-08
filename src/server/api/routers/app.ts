@@ -9,9 +9,11 @@ import {
 } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import {
+  buildDaybookTransactionFromCharge,
   createDaybookTransactionFromCharge,
   createDaybookTransactionFromPayout,
 } from "~/server/utils";
+import { Billy } from "~/utils/billy";
 
 export const appRouter = createTRPCRouter({
   getDaybookTransactionStatus: publicProcedure
@@ -47,6 +49,28 @@ export const appRouter = createTRPCRouter({
       return true;
     }),
 
+  syncCharges: publicProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string()),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const stripe = new Stripe(env.STRIPE_API_KEY, {
+        apiVersion: "2022-11-15",
+      });
+
+      await Promise.all(
+        input.ids.map(async (id) => {
+          const charge = await stripe.charges.retrieve(id);
+
+          await createDaybookTransactionFromCharge(charge);
+        })
+      );
+
+      return true;
+    }),
+
   syncPayouts: publicProcedure
     .input(
       z.object({
@@ -67,5 +91,19 @@ export const appRouter = createTRPCRouter({
       );
 
       return true;
+    }),
+
+  syncInvoiceToBilly: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      const billy = new Billy(env.BILLY_API_KEY);
+      const stripe = new Stripe(env.STRIPE_API_KEY, {
+        apiVersion: "2022-11-15",
+      });
+      const invoice = await stripe.invoices.retrieve(input.id, {
+        expand: ["total_tax_amounts.tax_rate"],
+      });
+
+      return billy.getDaybookTransactionForInvoice(invoice);
     }),
 });

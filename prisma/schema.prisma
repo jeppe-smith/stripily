@@ -49,22 +49,27 @@ model User {
     accounts      Account[]
 }
 
-model DaybookTransaction {
-    id        String                   @id @default(cuid())
-    createdAt DateTime                 @default(now())
-    updatedAt DateTime                 @updatedAt
-    object    DaybookTransactionObject
-    state     DaybookTransactionState
-    stripeId  String                   @unique
-    billyId   String                   @unique
+model Transaction {
+    id         String            @id @default(cuid())
+    createdAt  DateTime          @default(now())
+    updatedAt  DateTime          @updatedAt
+    stripeId   String            @unique
+    billyId    String?           @unique
+    stripeType StripeType
+    status     TransactionStatus
+    error      String?
 }
 
-enum DaybookTransactionObject {
+enum TransactionStatus {
+    PENDING
+    SUCCESS
+    FAILED
+}
+
+enum StripeType {
+    INVOICE
     CHARGE
+    FEE
     PAYOUT
-}
-
-enum DaybookTransactionState {
-    APPROVED
-    VOIDED
+    REFUND
 }

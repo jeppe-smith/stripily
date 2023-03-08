@@ -1,46 +1,60 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { getQueryKey } from "@trpc/react-query";
 import { useState } from "react";
 import { Button } from "~/components/Button";
 import { ChargeRow } from "~/components/ChargeRow";
 import { Checkbox } from "~/components/Checkbox";
-import { TableHead } from "~/components/TableHeader";
+import { TableHeader } from "~/components/TableHeader";
 import { TableRow } from "~/components/TableRow";
 import { api } from "~/utils/api";
 
 export function ChargesTable() {
-  const charges = api.stripe.getCharges.useQuery();
+  const pendingCharges = api.stripe.getPendingCharges.useQuery();
+  const syncCharges = api.app.syncCharges.useMutation({
+    async onSuccess() {
+      pendingCharges.refetch();
+    },
+  });
   const [selected, setSelected] = useState<string[]>([]);
-  const isAllSelected = selected.length === charges.data?.length;
+  const isAllSelected = selected.length === pendingCharges.data?.length;
 
-  if (charges.isLoading) {
+  if (pendingCharges.isLoading) {
     return <div>Loading...</div>;
   }
 
   return (
     <div>
       <div className="mt-6 mb-4 flex justify-end">
-        <Button text="Sync selected" icon="CloudArrowUpIcon" primary />
+        <Button
+          text="Sync selected"
+          icon="CloudArrowUpIcon"
+          primary
+          onClick={() => syncCharges.mutate({ ids: selected })}
+        />
       </div>
       <table className="w-full">
         <thead>
           <TableRow>
-            <TableHead collapse>
+            <TableHeader collapse>
               <Checkbox
                 checked={isAllSelected}
                 onChange={() =>
                   isAllSelected
                     ? setSelected([])
-                    : setSelected(charges.data?.map(({ id }) => id) ?? [])
+                    : setSelected(
+                        pendingCharges.data?.map(({ id }) => id) ?? []
+                      )
                 }
               />
-            </TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Currency</TableHead>
-            <TableHead>Status</TableHead>
+            </TableHeader>
+            <TableHeader>Date</TableHeader>
+            <TableHeader>Amount</TableHeader>
+            <TableHeader>Currency</TableHeader>
+            <TableHeader>Status</TableHeader>
           </TableRow>
         </thead>
         <tbody>
-          {charges.data?.map((charge) => (
+          {pendingCharges.data?.map((charge) => (
             <ChargeRow
               key={charge.id}
               charge={charge}
