@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { TableRow } from "~/components/TableRow";
 import { TableCell } from "~/components/TableCell";
 import { api } from "~/utils/api";

@@ -15,11 +15,9 @@ export function TableRow({ children, selected, href }: TableRowProps) {
         selected && "bg-gray-50"
       )}
     >
-      {Children.map(children, (child) =>
-        cloneElement(child as React.ReactElement, {
-          href,
-        })
-      )}
+      {Children.map(children, (child) => (
+        <td>{href ? <a href={href}>{child}</a> : child}</td>
+      ))}
     </tr>
   );
 }

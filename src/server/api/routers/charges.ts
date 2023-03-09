@@ -42,7 +42,7 @@ export const chargesRouter = createTRPCRouter({
 
       const invoice = await stripe.invoices.retrieve(input.invoice);
       const charge = await stripe.charges.search({
-        query: `customer:"${invoice.customer}"`,
+        query: `customer:"${invoice.customer as string}"`,
       });
 
       return charge.data.filter((c) => c.invoice === invoice.id);

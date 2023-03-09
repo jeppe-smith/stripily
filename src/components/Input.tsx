@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { FieldValues, Path, UseFormRegister } from "react-hook-form";
+import { type FieldValues, type Path, type UseFormRegister } from "react-hook-form";
 
 export type InputProps<FormValues extends FieldValues> = {
   label: string;

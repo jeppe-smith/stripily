@@ -10,11 +10,6 @@ import { api } from "~/utils/api";
 
 export function ChargesTable() {
   const pendingCharges = api.stripe.getPendingCharges.useQuery();
-  const syncCharges = api.app.syncCharges.useMutation({
-    async onSuccess() {
-      pendingCharges.refetch();
-    },
-  });
   const [selected, setSelected] = useState<string[]>([]);
   const isAllSelected = selected.length === pendingCharges.data?.length;
 
@@ -25,12 +20,7 @@ export function ChargesTable() {
   return (
     <div>
       <div className="mt-6 mb-4 flex justify-end">
-        <Button
-          text="Sync selected"
-          icon="CloudArrowUpIcon"
-          primary
-          onClick={() => syncCharges.mutate({ ids: selected })}
-        />
+        <Button text="Sync selected" icon="CloudArrowUpIcon" primary />
       </div>
       <table className="w-full">
         <thead>

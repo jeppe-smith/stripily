@@ -1,9 +1,9 @@
-import got, { Got } from "got";
+import got, { type Got } from "got";
 import { log } from "next-axiom";
 import Stripe from "stripe";
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
-import Prisma from "@prisma/client";
+import type Prisma from "@prisma/client";
 
 type Input<T> = Omit<T, "id">;
 type Response<K extends string, V> = {
@@ -201,7 +201,9 @@ export class Billy {
     });
 
     if (!invoiceTransaction) {
-      throw new Error(`No transaction for invoice (${charge.invoice})`);
+      throw new Error(
+        `No transaction for invoice (${charge.invoice as string})`
+      );
     }
 
     const daybookTransaction: DaybookTransactionInput = {
@@ -219,23 +221,23 @@ export class Billy {
   }
 
   // https://www.amino.dk/forums/t/154369.aspx
-  async handleInvoiceMarkedUncollectible(invoice: Stripe.Invoice) {
+  handleInvoiceMarkedUncollectible(invoice: Stripe.Invoice) {
     throw new Error("Not implemented");
   }
 
-  async handleInvoiceVoided(invoice: Stripe.Invoice) {
+  handleInvoiceVoided(invoice: Stripe.Invoice) {
     throw new Error("Not implemented");
   }
 
-  async handleChargeSucceeded(charge: Stripe.Charge) {
+  handleChargeSucceeded(charge: Stripe.Charge) {
     throw new Error("Not implemented");
   }
 
-  async handlePayoutPaid(payout: Stripe.Payout) {
+  handlePayoutPaid(payout: Stripe.Payout) {
     throw new Error("Not implemented");
   }
 
-  async handlePayoutFailed(payout: Stripe.Payout) {
+  handlePayoutFailed(payout: Stripe.Payout) {
     throw new Error("Not implemented");
   }
 
@@ -285,7 +287,7 @@ export class Billy {
   }
 
   async getDaybookTransactionLinesFromCharge(charge: Stripe.Charge) {
-    const stripe = new Stripe(env.STRIPE_API_KEY!, {
+    const stripe = new Stripe(env.STRIPE_API_KEY, {
       apiVersion: "2022-11-15",
     });
     const balanceTransaction = await stripe.balanceTransactions.retrieve(
@@ -392,7 +394,9 @@ export class Billy {
         });
       } else {
         throw new Error(
-          `Unknown tax rate: ${taxRate.country} ${taxRate.percentage}%`
+          `Unknown tax rate: ${taxRate.country ?? "null"} ${
+            taxRate.percentage
+          }%`
         );
       }
     }

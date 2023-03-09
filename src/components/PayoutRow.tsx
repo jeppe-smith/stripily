@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { TableRow } from "~/components/TableRow";
 import { TableCell } from "~/components/TableCell";
 import { api } from "~/utils/api";
@@ -14,10 +14,6 @@ export type PayoutRowProps = {
 };
 
 export function PayoutRow(props: PayoutRowProps) {
-  const { data: status } = api.app.getDaybookTransactionStatus.useQuery({
-    stripeId: props.payout.id,
-  });
-
   return (
     <TableRow selected={props.selected}>
       <TableCell>
@@ -34,7 +30,7 @@ export function PayoutRow(props: PayoutRowProps) {
       <TableCell>{(props.payout.amount / 100).toLocaleString()}</TableCell>
       <TableCell>{props.payout.currency.toUpperCase()}</TableCell>
       <TableCell>
-        <StatusPill
+        {/* <StatusPill
           status={
             status === "APPROVED"
               ? "success"
@@ -49,7 +45,7 @@ export function PayoutRow(props: PayoutRowProps) {
               ? "voided"
               : "not synced"
           }
-        />
+        /> */}
       </TableCell>
     </TableRow>
   );

@@ -1,5 +1,5 @@
 import { CheckCircleIcon } from "@heroicons/react/20/solid";
-import { Transaction } from "@prisma/client";
+import { type Transaction } from "@prisma/client";
 import dayjs from "dayjs";
 import Link from "next/link";
 import { useState } from "react";
@@ -7,7 +7,7 @@ import Stripe from "stripe";
 import { Badge } from "~/components/Badge";
 import { Checkbox } from "~/components/Checkbox";
 import { Header } from "~/components/Header";
-import { StatusPill, StatusPillProps } from "~/components/StatusPill";
+import { StatusPill, type StatusPillProps } from "~/components/StatusPill";
 import { TableCell } from "~/components/TableCell";
 import { TableHeader } from "~/components/TableHeader";
 import { TableRow } from "~/components/TableRow";

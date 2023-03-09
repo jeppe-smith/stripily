@@ -1,16 +1,9 @@
 import Stripe from "stripe";
-import { NextApiRequest, NextApiResponse } from "next";
+import { type NextApiRequest, type NextApiResponse } from "next";
 import { log } from "next-axiom";
 import { env } from "~/env.mjs";
 import { buffer } from "micro";
-import {
-  buildDaybookTransactionFromCharge,
-  buildDaybookTransactionFromPayout,
-  createDaybookTransactionFromCharge,
-  createDaybookTransactionFromPayout,
-} from "~/server/utils";
 import { Billy } from "~/utils/billy";
-import { prisma } from "~/server/db";
 
 export const config = {
   api: {
@@ -62,10 +55,10 @@ export default async function stripeWebhook(
         await billy.syncInvoicePayment(event.data.object as Stripe.Invoice);
         break;
       case "payout.paid":
-        await billy.handlePayoutPaid(event.data.object as Stripe.Payout);
+        billy.handlePayoutPaid(event.data.object as Stripe.Payout);
         break;
       case "payout.failed":
-        await billy.handlePayoutFailed(event.data.object as Stripe.Payout);
+        billy.handlePayoutFailed(event.data.object as Stripe.Payout);
         break;
       default:
         log.debug("Unhandled event type", { type: event.type });
