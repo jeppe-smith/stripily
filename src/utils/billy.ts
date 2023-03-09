@@ -1,7 +1,7 @@
 import got, { type Got } from "got";
 import { log } from "next-axiom";
 import Stripe from "stripe";
-import { env } from "~/env.mjs";
+import { env } from "~/config/env.mjs";
 import { prisma } from "~/server/db";
 import type Prisma from "@prisma/client";
 
@@ -336,7 +336,7 @@ export class Billy {
         {
           amount: chargeDkkAmount,
           side: "credit",
-          accountId: (await this.getRealizedExchangeRateGainAccount()).id,
+          accountId: (await this.getUnrealizedExchangeRateGainAccount()).id,
           currencyId: "DKK",
           priority: 2,
           text: charge.description ?? charge.id,
@@ -344,7 +344,7 @@ export class Billy {
         {
           amount: charge.amount / 100,
           side: "debit",
-          accountId: (await this.getRealizedExchangeRateGainAccount()).id,
+          accountId: (await this.getUnrealizedExchangeRateGainAccount()).id,
           currencyId: charge.currency,
           priority: 2,
           text: charge.description ?? charge.id,

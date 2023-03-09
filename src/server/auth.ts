@@ -5,7 +5,7 @@ import {
   type DefaultSession,
 } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { env } from "~/env.mjs";
+import { env } from "~/config/env.mjs";
 import { prisma } from "~/server/db";
 import Credentials from "next-auth/providers/credentials";
 import { verify } from "argon2";

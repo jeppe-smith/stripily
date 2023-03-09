@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { type NextApiRequest, type NextApiResponse } from "next";
 import { log } from "next-axiom";
-import { env } from "~/env.mjs";
+import { env } from "~/config/env.mjs";
 import { buffer } from "micro";
 import { Billy } from "~/utils/billy";
 
