@@ -14,7 +14,7 @@ export default function Invoice() {
     { invoice: id as string },
     { enabled: !!id }
   );
-  const syncInvoiceToBilly = api.app.syncInvoiceToBilly.useMutation();
+  // const syncInvoiceToBilly = api.app.syncInvoiceToBilly.useMutation();
 
   if (invoice.isLoading) {
     return <div>Loading...</div>;
@@ -27,7 +27,7 @@ export default function Invoice() {
       <Button
         text="Sync to Billy"
         icon="CloudArrowUpIcon"
-        onClick={() => syncInvoiceToBilly.mutate({ id: id as string })}
+        // onClick={() => syncInvoiceToBilly.mutate({ id: id as string })}
       />
       <ul>
         <li>Indbetalinger</li>

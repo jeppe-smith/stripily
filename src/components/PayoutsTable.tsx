@@ -11,14 +11,14 @@ import { api } from "~/utils/api";
 export function PayoutsTable() {
   const queryClient = useQueryClient();
   const payouts = api.stripe.getPayouts.useQuery();
-  const syncPayouts = api.app.syncPayouts.useMutation({
-    // onSuccess: () => payouts.refetch(),
-    async onSuccess() {
-      await queryClient.invalidateQueries({
-        queryKey: getQueryKey(api.app.getDaybookTransactionStatus),
-      });
-    },
-  });
+  // const syncPayouts = api.app.syncPayouts.useMutation({
+  //   // onSuccess: () => payouts.refetch(),
+  //   async onSuccess() {
+  //     await queryClient.invalidateQueries({
+  //       queryKey: getQueryKey(api.app.getDaybookTransactionStatus),
+  //     });
+  //   },
+  // });
   const [selected, setSelected] = useState<string[]>([]);
   const isAllSelected = selected.length === payouts.data?.length;
 
@@ -33,7 +33,7 @@ export function PayoutsTable() {
           text="Sync selected"
           icon="CloudArrowUpIcon"
           primary
-          onClick={() => syncPayouts.mutate({ ids: selected })}
+          // onClick={() => syncPayouts.mutate({ ids: selected })}
         />
       </div>
       <table className="w-full">
