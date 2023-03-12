@@ -2,8 +2,7 @@ import "dotenv/config";
 import Stripe from "stripe";
 import { prisma } from "~/server/db";
 
-// @ts-ignore
-const stripe = new Stripe(process.env.STRIPE_API_KEY, {
+const stripe = new Stripe(process.env.STRIPE_API_KEY!, {
   apiVersion: "2022-11-15",
 });
 
@@ -24,14 +23,13 @@ async function seed() {
       await prisma.transaction.create({
         data: {
           status: "SUCCESS",
-          // @ts-ignore
-          stripeId: invoice.charge,
+          stripeId: invoice.charge as string,
           stripeType: "CHARGE",
-          billyId: "billy-" + invoice.charge,
+          billyId: "billy-" + (invoice.charge as string),
         },
       });
     })
   );
 }
 
-seed();
+await seed();
