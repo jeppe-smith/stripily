@@ -67,7 +67,7 @@ export default async function stripeWebhook(
 
     res.status(200).json({ received: true });
   } catch (error: any) {
-    log.error((error as Error).toString(), { error });
+    log.error((error as Error).toString(), { error: error as Error });
     res.status(500).json({
       error: error as Error,
     });

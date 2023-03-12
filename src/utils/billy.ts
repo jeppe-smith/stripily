@@ -308,13 +308,13 @@ export class Billy {
       throw new Error(`Could not find transaction for invoice (${invoice.id})`);
     }
 
-    const postedDkkAmount = salesDaybookTransactionLine.amount ?? 0;
-    const chargeDkkAmount = Math.round(charge.amount * exchangeRate) / 100;
+    const postedDkkAmount = (salesDaybookTransactionLine.amount ?? 0) * 100;
+    const chargeDkkAmount = Math.round(charge.amount * exchangeRate);
     const amountDifference = chargeDkkAmount - postedDkkAmount;
 
     const daybookTransaction: DaybookTransactionLineInput[] = [
       {
-        amount: chargeDkkAmount,
+        amount: chargeDkkAmount / 100,
         side: "debit",
         accountId: (await this.getStripeAccount()).id,
         currencyId: "DKK",
@@ -334,7 +334,7 @@ export class Billy {
     if (charge.currency !== "DKK") {
       daybookTransaction.push(
         {
-          amount: chargeDkkAmount,
+          amount: postedDkkAmount / 100,
           side: "credit",
           accountId: (await this.getUnrealizedExchangeRateGainAccount()).id,
           currencyId: "DKK",
@@ -354,7 +354,7 @@ export class Billy {
       // TODO: handle case where there are multiple charges on an invoice
       if (amountDifference !== 0) {
         daybookTransaction.push({
-          amount: amountDifference,
+          amount: amountDifference / 100,
           side: "debit",
           accountId: (await this.getRealizedExchangeRateGainAccount()).id,
           currencyId: "DKK",
