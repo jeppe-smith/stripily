@@ -163,7 +163,7 @@ export class Billy {
     const daybookTransaction: DaybookTransactionInput = {
       daybookId: (await this.getDaybook()).id,
       entryDate: new Date(invoice.created * 1000).toISOString().split("T")[0]!,
-      state: "approved",
+      state: "draft",
       voucherNo: invoice.id,
       description: invoice.id,
       lines: await this.getDaybookTransactionLinesFromInvoice(invoice),
@@ -212,7 +212,7 @@ export class Billy {
     const daybookTransaction: DaybookTransactionInput = {
       daybookId: (await this.getDaybook()).id,
       entryDate: new Date(charge.created * 1000).toISOString().split("T")[0]!,
-      state: "approved",
+      state: "draft",
       voucherNo: charge.id,
       description: charge.description ?? charge.id,
       lines: await this.getDaybookTransactionLinesFromCharge(charge),
