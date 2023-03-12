@@ -1,13 +1,14 @@
 import classNames from "classnames";
-import { Children, cloneElement } from "react";
+import { Children } from "react";
 
 export type TableRowProps = {
   children: React.ReactNode;
   selected?: boolean;
   href?: string;
+  header?: boolean;
 };
 
-export function TableRow({ children, selected, href }: TableRowProps) {
+export function TableRow({ children, selected, header, href }: TableRowProps) {
   return (
     <tr
       className={classNames(
@@ -15,9 +16,13 @@ export function TableRow({ children, selected, href }: TableRowProps) {
         selected && "bg-gray-50"
       )}
     >
-      {Children.map(children, (child) => (
-        <td>{href ? <a href={href}>{child}</a> : child}</td>
-      ))}
+      {Children.map(children, (child) => {
+        if (header) {
+          return child;
+        }
+
+        return <td>{href ? <a href={href}>{child}</a> : child}</td>;
+      })}
     </tr>
   );
 }

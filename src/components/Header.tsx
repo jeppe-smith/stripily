@@ -7,9 +7,12 @@ export function Header() {
   const router = useRouter();
 
   return (
-    <header className="mb-8 border-b bg-white shadow-sm">
+    <header className="mb-8 bg-white py-2">
       <Container>
-        <nav className="flex justify-end space-x-6 py-2 text-sm font-medium">
+        <h6 className="inline-block bg-gradient-to-r from-brand to-brand-accent bg-clip-text text-2xl font-extrabold tracking-tight text-transparent">
+          teddi
+        </h6>
+        {/* <nav className="flex justify-end space-x-6 py-2 text-sm font-medium">
           <Link
             href="/invoices"
             className={classNames(
@@ -39,7 +42,7 @@ export function Header() {
           >
             Udbetalinger
           </Link>
-        </nav>
+        </nav> */}
       </Container>
     </header>
   );

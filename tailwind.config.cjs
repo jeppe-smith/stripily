@@ -11,6 +11,7 @@ module.exports = {
     extend: {
       colors: {
         brand: "#403CF5",
+        "brand-accent": "#cf00ff",
       },
     },
   },

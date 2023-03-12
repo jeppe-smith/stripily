@@ -27,7 +27,6 @@ specifiers:
   eslint: ^8.30.0
   eslint-config-next: 13.1.6
   got: ^12.5.3
-  iconoir-react: ^6.3.0
   micro: ^10.0.1
   next: 13.2.1
   next-auth: ^4.19.0
@@ -61,7 +60,6 @@ dependencies:
   classnames: 2.3.2
   dayjs: 1.11.7
   got: 12.5.3
-  iconoir-react: 6.3.0_react@18.2.0
   micro: 10.0.1
   next: 13.2.1_biqbaboplfbrettd7655fr4n2y
   next-auth: 4.19.2_qgtcjgzkkjtbiyvnx7d32fl5vu
@@ -1943,14 +1941,6 @@ packages:
       debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
-    dev: false
-
-  /iconoir-react/6.3.0_react@18.2.0:
-    resolution: {integrity: sha512-JJD5XGW3fEw0kFpc0cxq/E6WmZSte+fi9RvwCCruZxh6QFEUoIEvf6eciOoVM24W1SGQloyo84PyqEa1NC6X2g==}
-    peerDependencies:
-      react: ^16.8.6 || ^17 || ^18
-    dependencies:
-      react: 18.2.0
     dev: false
 
   /iconv-lite/0.4.24:
