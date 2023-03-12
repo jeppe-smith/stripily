@@ -9,6 +9,9 @@ type Input<T> = Omit<T, "id">;
 type Response<K extends string, V> = {
   [key in K]: V;
 } & {
+  validationErrors?: any;
+  erroMessage?: string;
+  errorCode?: string;
   meta: {
     statusCode: number;
     success: boolean;
@@ -416,6 +419,8 @@ export class Billy {
       throw new Error("voucherNo is required");
     }
 
+    log.debug("Creating daybook transaction", daybookTransaction);
+
     const transaction = await prisma.transaction.create({
       data: {
         status: "PENDING",
@@ -431,6 +436,11 @@ export class Billy {
         })
         .json<Response<"daybookTransactions", DaybookTransaction[]>>();
 
+      if (!response.meta.success) {
+        log.debug("Failed to create daybook transaction", response);
+        throw new Error(response.erroMessage);
+      }
+
       await prisma.transaction.update({
         where: {
           id: transaction.id,
@@ -443,6 +453,7 @@ export class Billy {
 
       return response;
     } catch (error) {
+      log.error("Failed to create daybook transaction", error as Error);
       await prisma.transaction.delete({ where: { id: transaction.id } });
       throw error;
     }
