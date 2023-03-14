@@ -357,8 +357,8 @@ export class Billy {
       // TODO: handle case where there are multiple charges on an invoice
       if (amountDifference !== 0) {
         daybookTransaction.push({
-          amount: amountDifference / 100,
-          side: "debit",
+          amount: Math.abs(amountDifference / 100),
+          side: amountDifference > 0 ? "credit" : "debit",
           accountId: (await this.getRealizedExchangeRateGainAccount()).id,
           currencyId: "DKK",
           priority: 3,
