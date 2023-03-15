@@ -9,7 +9,7 @@ type Input<T> = Omit<T, "id">;
 type Response<K extends string, V> = {
   [key in K]: V;
 } & {
-  validationErrors?: any;
+  validationErrors?: unknown;
   erroMessage?: string;
   errorCode?: string;
   meta: {
@@ -158,7 +158,7 @@ export class Billy {
   async syncInvoice(id: string) {
     const stripe = new Stripe(env.STRIPE_API_KEY, { apiVersion: "2022-11-15" });
     const invoice = await stripe.invoices.retrieve(id, {
-      expand: ["total_tax_amounts.tax_rate"],
+      expand: ["total_tax_amounts.tax_rate", "charge.balance_transaction"],
     });
     const daybookTransaction: DaybookTransactionInput = {
       daybookId: (await this.getDaybook()).id,
@@ -251,7 +251,7 @@ export class Billy {
   }
 
   async getDaybookTransactionLinesFromInvoice(invoice: Stripe.Invoice) {
-    const exchangeRate = await this.getExchangeRate(invoice.currency);
+    const exchangeRate = await this.getExchangeRateForInvoice(invoice);
     const taxLines = await this.getDaybookTransactionLinesFromTaxAmounts(
       invoice,
       exchangeRate
@@ -535,6 +535,22 @@ export class Billy {
       .json<Response<"daybookTransaction", DaybookTransaction>>();
 
     return response.daybookTransaction;
+  }
+
+  async getExchangeRateForInvoice(invoice: Stripe.Invoice) {
+    if (typeof invoice.charge === "string") {
+      throw new Error("Invoice.charge is not expanded");
+    }
+
+    if (typeof invoice.charge?.balance_transaction === "string") {
+      throw new Error("Invoice.charge.balance_transaction is not expanded");
+    }
+
+    if (invoice.charge?.balance_transaction?.exchange_rate) {
+      return invoice.charge.balance_transaction.exchange_rate;
+    }
+
+    return this.getExchangeRate(invoice.currency);
   }
 
   async getExchangeRate(id: string) {
