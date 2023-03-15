@@ -165,7 +165,7 @@ export class Billy {
       entryDate: new Date(invoice.created * 1000).toISOString().split("T")[0]!,
       state: "draft",
       voucherNo: invoice.id,
-      description: invoice.id,
+      description: `Stripe invoice ${invoice.number as string}`,
       lines: await this.getDaybookTransactionLinesFromInvoice(invoice),
     };
 
@@ -187,26 +187,30 @@ export class Billy {
         apiVersion: "2022-11-15",
       });
 
-      charge = await stripe.charges.retrieve(charge);
+      charge = await stripe.charges.retrieve(charge, {
+        expand: ["invoice"],
+      });
     }
 
-    return this.syncCharge(charge);
+    return this.syncInvoiceCharge(charge);
   }
 
-  async syncCharge(charge: Stripe.Charge) {
+  async syncInvoiceCharge(charge: Stripe.Charge) {
     if (!charge.invoice) {
       log.debug("Charge has no invoice", { id: charge.id });
       return;
     }
 
+    if (typeof charge.invoice === "string") {
+      throw new Error("charge.invoice is not expanded");
+    }
+
     const invoiceTransaction = await prisma.transaction.findFirst({
-      where: { stripeId: charge.invoice as string },
+      where: { stripeId: charge.invoice.id },
     });
 
     if (!invoiceTransaction) {
-      throw new Error(
-        `No transaction for invoice (${charge.invoice as string})`
-      );
+      throw new Error(`No transaction for invoice (${charge.invoice.id})`);
     }
 
     const daybookTransaction: DaybookTransactionInput = {
@@ -214,7 +218,9 @@ export class Billy {
       entryDate: new Date(charge.created * 1000).toISOString().split("T")[0]!,
       state: "draft",
       voucherNo: charge.id,
-      description: charge.description ?? charge.id,
+      description: `Payment for stripe invoice ${
+        charge.invoice.number as string
+      }`,
       lines: await this.getDaybookTransactionLinesFromCharge(charge),
     };
 
@@ -322,7 +328,6 @@ export class Billy {
         accountId: (await this.getStripeAccount()).id,
         currencyId: "DKK",
         priority: 0,
-        text: charge.description ?? charge.id,
       },
       {
         amount: charge.amount / 100,
@@ -330,7 +335,6 @@ export class Billy {
         accountId: (await this.getSalesCreditAccount()).id,
         currencyId: charge.currency,
         priority: 1,
-        text: charge.description ?? charge.id,
       },
     ];
 
@@ -342,7 +346,6 @@ export class Billy {
           accountId: (await this.getUnrealizedExchangeRateGainAccount()).id,
           currencyId: "DKK",
           priority: 2,
-          text: charge.description ?? charge.id,
         },
         {
           amount: charge.amount / 100,
@@ -350,7 +353,6 @@ export class Billy {
           accountId: (await this.getUnrealizedExchangeRateGainAccount()).id,
           currencyId: charge.currency,
           priority: 2,
-          text: charge.description ?? charge.id,
         }
       );
 
@@ -362,7 +364,6 @@ export class Billy {
           accountId: (await this.getRealizedExchangeRateGainAccount()).id,
           currencyId: "DKK",
           priority: 3,
-          text: charge.description ?? charge.id,
         });
       }
     }

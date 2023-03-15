@@ -56,7 +56,7 @@ export const chargesRouter = createTRPCRouter({
         apiVersion: "2022-11-15",
       });
       const charge = await stripe.charges.retrieve(input.id);
-      const daybookTransaction = billy.syncCharge(charge);
+      const daybookTransaction = billy.syncInvoiceCharge(charge);
 
       console.log(daybookTransaction);
 
