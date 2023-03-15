@@ -296,6 +296,14 @@ export class Billy {
   }
 
   async getDaybookTransactionLinesFromCharge(charge: Stripe.Charge) {
+    if (!charge.invoice) {
+      throw new Error("Charge has no invoice");
+    }
+
+    if (typeof charge.invoice === "string") {
+      throw new Error("charge.invoice is not expanded");
+    }
+
     const stripe = new Stripe(env.STRIPE_API_KEY, {
       apiVersion: "2022-11-15",
     });
@@ -303,18 +311,19 @@ export class Billy {
       charge.balance_transaction as string
     );
     const exchangeRate = balanceTransaction.exchange_rate ?? 1;
-    const invoice = await stripe.invoices.retrieve(charge.invoice as string);
     const salesAccount = await this.getSalesAccount(
-      invoice.customer_address?.country
+      charge.invoice.customer_address?.country
     );
     const salesDaybookTransactionLine =
       await this.getDaybookTransactionLineByStripeIdAndAccountId(
-        invoice.id,
+        charge.invoice.id,
         salesAccount.id
       );
 
     if (!salesDaybookTransactionLine) {
-      throw new Error(`Could not find transaction for invoice (${invoice.id})`);
+      throw new Error(
+        `Could not find transaction for invoice (${charge.invoice.id})`
+      );
     }
 
     const postedDkkAmount = (salesDaybookTransactionLine.amount ?? 0) * 100;
