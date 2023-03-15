@@ -163,7 +163,7 @@ export class Billy {
     const daybookTransaction: DaybookTransactionInput = {
       daybookId: (await this.getDaybook()).id,
       entryDate: new Date(invoice.created * 1000).toISOString().split("T")[0]!,
-      state: "draft",
+      state: "approved",
       voucherNo: invoice.id,
       description: `Stripe invoice ${invoice.number as string}`,
       lines: await this.getDaybookTransactionLinesFromInvoice(invoice),
@@ -216,7 +216,7 @@ export class Billy {
     const daybookTransaction: DaybookTransactionInput = {
       daybookId: (await this.getDaybook()).id,
       entryDate: new Date(charge.created * 1000).toISOString().split("T")[0]!,
-      state: "draft",
+      state: "approved",
       voucherNo: charge.id,
       description: `Payment for stripe invoice ${
         charge.invoice.number as string
