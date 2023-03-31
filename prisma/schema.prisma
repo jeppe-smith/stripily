@@ -60,6 +60,22 @@ model Transaction {
     error      String?
 }
 
+model StripeEvent {
+    id         String            @id @default(cuid())
+    createdAt  DateTime          @default(now())
+    updatedAt  DateTime          @updatedAt
+    externalId String            @unique
+    error      String?
+    status     StripeEventStatus
+}
+
+enum StripeEventStatus {
+    RECEIVED
+    SKIPPED
+    PROCESSED
+    FAILED
+}
+
 enum TransactionStatus {
     PENDING
     SUCCESS
