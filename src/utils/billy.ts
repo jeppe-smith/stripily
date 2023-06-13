@@ -328,22 +328,30 @@ export class Billy {
 
     const postedDkkAmount = (salesDaybookTransactionLine.amount ?? 0) * 100;
     const chargeDkkAmount = Math.round(charge.amount * exchangeRate);
-    const amountDifference = chargeDkkAmount - postedDkkAmount;
+    const feeDkkAmount = Math.round(balanceTransaction.fee * exchangeRate)
+    const exchangeRateGain = chargeDkkAmount - postedDkkAmount;
 
     const daybookTransaction: DaybookTransactionLineInput[] = [
-      {
-        amount: chargeDkkAmount / 100,
-        side: "debit",
-        accountId: (await this.getStripeAccount()).id,
-        currencyId: "DKK",
-        priority: 0,
-      },
       {
         amount: charge.amount / 100,
         side: "credit",
         accountId: (await this.getSalesCreditAccount()).id,
         currencyId: charge.currency,
+        priority: 0,
+      },
+      {
+        amount: (chargeDkkAmount - feeDkkAmount) / 100,
+        side: "debit",
+        accountId: (await this.getStripeAccount()).id,
+        currencyId: "DKK",
         priority: 1,
+      },
+      {
+        amount: feeDkkAmount / 100,
+        side: "credit",
+        accountId: (await this.getFeesAccount()).id,
+        currencyId: "DKK",
+        priority: 2,
       },
     ];
 
@@ -354,25 +362,25 @@ export class Billy {
           side: "credit",
           accountId: (await this.getUnrealizedExchangeRateGainAccount()).id,
           currencyId: "DKK",
-          priority: 2,
+          priority: 3,
         },
         {
           amount: charge.amount / 100,
           side: "debit",
           accountId: (await this.getUnrealizedExchangeRateGainAccount()).id,
           currencyId: charge.currency,
-          priority: 2,
+          priority: 3,
         }
       );
 
       // TODO: handle case where there are multiple charges on an invoice
-      if (amountDifference !== 0) {
+      if (exchangeRateGain !== 0) {
         daybookTransaction.push({
-          amount: Math.abs(amountDifference / 100),
-          side: amountDifference > 0 ? "credit" : "debit",
+          amount: Math.abs(exchangeRateGain / 100),
+          side: exchangeRateGain > 0 ? "credit" : "debit",
           accountId: (await this.getRealizedExchangeRateGainAccount()).id,
           currencyId: "DKK",
-          priority: 3,
+          priority: 4,
         });
       }
     }
