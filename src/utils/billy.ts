@@ -328,7 +328,7 @@ export class Billy {
 
     const postedDkkAmount = (salesDaybookTransactionLine.amount ?? 0) * 100;
     const chargeDkkAmount = Math.round(charge.amount * exchangeRate);
-    const feeDkkAmount = Math.round(balanceTransaction.fee * exchangeRate)
+    const feeDkkAmount = Math.round(balanceTransaction.fee * exchangeRate);
     const exchangeRateGain = chargeDkkAmount - postedDkkAmount;
 
     const daybookTransaction: DaybookTransactionLineInput[] = [
@@ -346,14 +346,17 @@ export class Billy {
         currencyId: "DKK",
         priority: 1,
       },
-      {
+    ];
+
+    if (feeDkkAmount !== 0) {
+      daybookTransaction.push({
         amount: feeDkkAmount / 100,
         side: "credit",
         accountId: (await this.getFeesAccount()).id,
         currencyId: "DKK",
         priority: 2,
-      },
-    ];
+      });
+    }
 
     if (charge.currency !== "DKK") {
       daybookTransaction.push(
