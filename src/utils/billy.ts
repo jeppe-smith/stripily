@@ -436,21 +436,23 @@ export class Billy {
     daybookTransaction: DaybookTransactionInput,
     type: Prisma.StripeType
   ) {
+    let transaction: Prisma.Transaction | null = null;
+
     if (!daybookTransaction.voucherNo) {
       throw new Error("voucherNo is required");
     }
 
     log.debug("Creating daybook transaction", daybookTransaction);
 
-    const transaction = await prisma.transaction.create({
-      data: {
-        status: "PENDING",
-        stripeId: daybookTransaction.voucherNo,
-        stripeType: type,
-      },
-    });
-
     try {
+      transaction = await prisma.transaction.create({
+        data: {
+          status: "PENDING",
+          stripeId: daybookTransaction.voucherNo,
+          stripeType: type,
+        },
+      });
+
       const response = await this.client
         .post("daybookTransactions", {
           json: { daybookTransaction },
@@ -474,8 +476,14 @@ export class Billy {
 
       return response;
     } catch (error) {
-      log.error("Failed to create daybook transaction", error as Error);
-      await prisma.transaction.delete({ where: { id: transaction.id } });
+      log.error(error!.toString(), daybookTransaction);
+
+      try {
+        await prisma.transaction.delete({ where: { id: transaction?.id } });
+      } catch (error) {
+        log.error(error!.toString());
+      }
+
       throw error;
     }
   }
